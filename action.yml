@@ -53,15 +53,30 @@ runs:
         # ======
         # MACROS
         # ======
+
+        setup_rmz() {
+          echo "Installing rmz"
+          curl -fsSL --tlsv1.2 --proto '=https' https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash > /dev/null 2>&1
+          cargo binstall -qy rmz
+          ln -s ~/.cargo/bin/rmz /usr/local/bin/rmz
+        }
+
+        rmdir_by_find() {
+          sudo find "$1" -type f -delete
+          sudo rm -rf "$1"
+        }
+
+        rmdir_by_rmz() {
+          sudo rmz -f "$1"
+        }
         
         fast_rmdir() {
           if [[ -d "$1" ]] && [[ -n "$1" ]] && [[ ! "$1" = "/" ]] && [[ ! "$1" = "~" ]]; then
             echo "Removing directory: $1"
-            sudo find "$1" -type f -delete -print | wc -l
-            sudo rm -rf "$1"
+            rmdir_by_rmz "$1"
           fi
         }
-
+        
         list_installed_dpkg() {
           dpkg --get-selections $@ | grep -v deinstall | awk '{print $1}'
         }
@@ -131,6 +146,9 @@ runs:
         # SCRIPT
         # ======
 
+        # Install rmz
+        setup_rmz
+        
         # Display initial disk space stats
 
         AVAILABLE_INITIAL=$(getAvailableSpace)
